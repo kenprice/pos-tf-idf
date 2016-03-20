@@ -50,14 +50,13 @@ for filename in filepaths:
     f = codecs.open('./txt/' + filename, 'r', encoding='utf-8')
     doclist.append(f.read())
 
-
 ################################################################################
 # EXTRACT NOUNS
 ################################################################################
 
 st = StanfordPOSTagger(MODEL_PATH, POSTAGGER_JAR_PATH, java_options='-Xmx6g')
 
-extracted_nouns_table = [[] for x in range(len(doclist))]
+extracted_nouns_table = [None for x in range(len(doclist))]
 
 for i, doc in enumerate(doclist):
     print "==============================================="
@@ -65,4 +64,24 @@ for i, doc in enumerate(doclist):
     tagged_words = st.tag(doc.split())
     nouns = [t for t in tagged_words if t[1].startswith('NN')]
     print nouns
+    extracted_nouns_table[i] = [n[0] for n in nouns]
     print "==============================================="
+
+# Flatten extracted nouns, convert to set
+flat_extracted_nouns = []
+for item in extracted_nouns_table:
+    flat_extracted_nouns.extend(item)
+flat_extracted_nouns = list(set(flat_extracted_nouns))
+
+################################################################################
+# COMPUTE IDF TABLE
+################################################################################
+idf_table = []
+for noun in flat_extracted_nouns:
+    idf_table.append([noun, idf(noun, extracted_nouns_table)])
+
+# Sort by IDF score
+idf_table.sort(key=lambda x: x[1])
+
+for item in idf_table:
+    print str(item[1]) + "\t" + item[0]
