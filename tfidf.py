@@ -62,16 +62,24 @@ for i, doc in enumerate(doclist):
     print "==============================================="
     print filepaths[i]
     tagged_words = st.tag(doc.split())
-    nouns = [t for t in tagged_words if t[1].startswith('NN')]
+
+    # Make all words lowercase, and filter special characters. st.tag() returns list of ordered pairs
+    # in the form ('word', 'NN~') where 'NN~' is the tag for part of speech
+    nouns = [(''.join(e for e in t[0].lower() if e.isalnum()), t[1]) for t in tagged_words if t[1].startswith('NN')]
+
     print nouns
     extracted_nouns_table[i] = [n[0] for n in nouns]
     print "==============================================="
 
 # Flatten extracted nouns, convert to set
 flat_extracted_nouns = []
+
 for item in extracted_nouns_table:
     flat_extracted_nouns.extend(item)
 flat_extracted_nouns = list(set(flat_extracted_nouns))
+
+# Filter garbage words: for now, these will just be 'words' of length 1.
+flat_extracted_nouns = [n for n in flat_extracted_nouns if len(n) > 1]
 
 ################################################################################
 # COMPUTE IDF TABLE
